@@ -25,30 +25,55 @@ def parse_a_instruction(command):
     binary_address = bin(address)
     return f'{binary_address[2:].zfill(16)}'
 
-def parse_c_instruction(command):
+def split_c_instruction(command):
     dest_command = ''
     comp_command = ''
     comp_index = 0
     jump_command = ''
     jump_index = 0
-    try:
-        index = command.index('=')
+    if command.find('=') != -1:
+        index = command.find('=')
         dest_command = command[0:index]
         comp_index = index + 1
-    except:
-        pass
-
-    try:
-        index = command.index(';')
+    
+    if command.find(';') != -1:
+        index = command.find(';')
         comp_command = command[comp_index:index]
         jump_index = index +  1
-        
-    except:
-        pass
+        jump_command = command[jump_index:]
+    else:
+        comp_command = command[comp_index:]
 
-    
+    return [dest_command, comp_command, jump_command]
 
+def parse_c_instruction(command):
+    instructions = split_c_instruction(command)
+    parsed_instruction = f'111{parse_dest(instructions[0])}'
+    return parsed_instruction
 
+def parse_dest(dest):
+    binary_dest = ''
+    a_find = dest.find('A')
+    d_find = dest.find('D')
+    m_find = dest.find('M')
+
+    if a_find != -1:
+        binary_dest += '1'
+    else:
+        binary_dest += '0'
+
+    if d_find != -1:
+        binary_dest += '1'
+    else:
+        binary_dest += '0'
+
+    if m_find != -1:
+        binary_dest += '1'
+    else: binary_dest += '0'
+
+    return binary_dest
+
+print(parse_dest(''))
     
 
 
