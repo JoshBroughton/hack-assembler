@@ -1,8 +1,6 @@
 import sys
 
-with open(sys.argv[1], 'r') as f:
-    program = f.read()
-
+binary_program = []
 # Accepts a line as input. if it is empty or the first non-whitespace char is '/', 
 # the line is not a command and is skipped. Else the first word is assumed to be a valid
 # hack assembly command. The command parser will print an error if it is fed an invalid command.
@@ -12,14 +10,16 @@ def is_command(line):
         return False
     elif stripped_line[0] == '/':
         return False
+    else:
+        return True
 
 # Controller function for parsing a command from assembly to machine    
 def parse_to_hack(command):
     command = command.strip()
     if (command[0] == '@'):
-        parse_a_instruction(command)
+        binary_program.append(f'{parse_a_instruction(command)}\n')
     else:
-        parse_c_instruction(command)
+        binary_program.append(f'{parse_c_instruction(command)}\n')
 
 # parse an a instruction from hack assembly to binary
 def parse_a_instruction(command):
@@ -52,7 +52,6 @@ def split_c_instruction(command):
 # controller function for parsing c instruction
 def parse_c_instruction(command):
     instructions = split_c_instruction(command)
-    print(instructions)
     parsed_instruction = f'111{parse_comp(instructions[1])}{parse_dest(instructions[0])}{parse_jump(instructions[2])}'
     return parsed_instruction
 
@@ -154,6 +153,15 @@ def parse_comp(cmp):
     elif cmp == 'D|M':
         return '1010101'
 
-print(parse_c_instruction('D=D+A'))
+with open(sys.argv[1], 'r') as f:
+    for line in f:
+        if is_command(line) == True:
+            parse_to_hack(line)
+f.close
 
+writeF = open(f'{sys.argv[1][:-4]}.hack', 'w', encoding='utf-8')
 
+for command in binary_program:
+    writeF.write(command)
+
+writeF.close
