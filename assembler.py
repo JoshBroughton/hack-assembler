@@ -42,6 +42,11 @@ def parse_c_instruction(command):
         index = command.index(';')
         comp_command = command[comp_index:index]
         jump_index = index +  1
+        
+    except:
+        pass
+
+    
 
 
     
