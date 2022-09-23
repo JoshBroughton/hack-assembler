@@ -12,7 +12,8 @@ def is_command(line):
         return False
     elif stripped_line[0] == '/':
         return False
-    
+
+# Controller function for parsing a command from assembly to machine    
 def parse_to_hack(command):
     command = command.strip()
     if (command[0] == '@'):
@@ -20,11 +21,13 @@ def parse_to_hack(command):
     else:
         parse_c_instruction(command)
 
+# parse an a instruction from hack assembly to binary
 def parse_a_instruction(command):
     address = int(command[1:])
     binary_address = bin(address)
     return f'{binary_address[2:].zfill(16)}'
 
+# split a c instruction into comp, dest, and jump components
 def split_c_instruction(command):
     dest_command = ''
     comp_command = ''
@@ -46,9 +49,11 @@ def split_c_instruction(command):
 
     return [dest_command, comp_command, jump_command]
 
+# controller function for parsing c instruction
 def parse_c_instruction(command):
     instructions = split_c_instruction(command)
-    parsed_instruction = f'111{parse_dest(instructions[0])}'
+    print(instructions)
+    parsed_instruction = f'111{parse_comp(instructions[1])}{parse_dest(instructions[0])}{parse_jump(instructions[2])}'
     return parsed_instruction
 
 def parse_dest(dest):
@@ -73,7 +78,82 @@ def parse_dest(dest):
 
     return binary_dest
 
-print(parse_dest(''))
-    
+def parse_jump(jump):
+    if jump == '':
+        return '000'
+    elif jump == 'JGT':
+        return '001'
+    elif jump == 'JEQ':
+        return '010'
+    elif jump == 'JGE':
+        return '011'
+    elif jump == 'JLT':
+        return '100'
+    elif jump == 'JNE':
+        return '101'
+    elif jump == 'JLE':
+        return '110'
+    elif jump == 'JMP':
+        return '111'
+
+def parse_comp(cmp):
+    if cmp == '0':
+        return '0101010'
+    elif cmp == '1':
+        return '0111111'
+    elif cmp == '-1':
+        return '0111010'
+    elif cmp == 'D':
+        return '0001100'
+    elif cmp == 'A':
+        return '0110000'
+    elif cmp == '!D':
+        return '0001101'
+    elif cmp == '!A':
+        return '0110001'
+    elif cmp == '-D':
+        return '0001111'
+    elif cmp == '-A':
+        return '0110011'
+    elif cmp == 'D+1':
+        return '0011111'
+    elif cmp == 'A+1':
+        return '0110111'
+    elif cmp == 'D-1':
+        return '0001110'
+    elif cmp == 'A-1':
+        return '0110010'
+    elif cmp == 'D+A':
+        return '0000010'
+    elif cmp == 'D-A':
+        return '0010011'
+    elif cmp == 'A-D':
+        return '0000111'
+    elif cmp == 'D&A':
+        return '0000000'
+    elif cmp == 'D|!':
+        return '0010101'
+    elif cmp == 'M':
+        return '1110000'
+    elif cmp == '!M':
+        return '1110001'
+    elif cmp == '-M':
+        return '1110011'
+    elif cmp == 'M+1':
+        return '1110111'
+    elif cmp == 'M-1':
+        return '1110010'
+    elif cmp == 'D+M':
+        return '1000010'
+    elif cmp == 'D-M':
+        return '1010011'
+    elif cmp == 'M-D':
+        return '1000111'
+    elif cmp == 'D&M':
+        return '1000000'
+    elif cmp == 'D|M':
+        return '1010101'
+
+print(parse_c_instruction('D=D+A'))
 
 
