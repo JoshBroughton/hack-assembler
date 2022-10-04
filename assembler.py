@@ -206,7 +206,6 @@ def parse_comp(cmp):
 def handle_label(label, rom_address):
     symbol_table[label[1:-1]] = rom_address
     
-    
 # first pass to get labels
 with open(sys.argv[1], 'r') as f:
     rom_address = 0
