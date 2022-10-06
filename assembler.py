@@ -1,25 +1,61 @@
 import sys
+import re
 
 binary_program = []
+symbol_table = {
+    'var_address': 16,
+    'SP': 0,
+    'LCL': 1,
+    'ARG': 2,
+    'THIS': 3,
+    'THAT': 4,
+    'R0': 0,
+    'R1': 1,
+    'R2': 2,
+    'R3': 3,
+    'R4': 4,
+    'R5': 5,
+    'R6': 6,
+    'R7': 7,
+    'R8': 8,
+    'R9': 9,
+    'R10': 10,
+    'R11': 11,
+    'R12': 12,
+    'R13': 13,
+    'R14': 14,
+    'R15': 15,
+    'SCREEN': 16384,
+    'KBD': 24576,    
+    }
 # Accepts a line as input. if it is empty or the first non-whitespace char is '/', 
 # the line is not a command and is skipped. Else the first word is assumed to be a valid
 # hack assembly command. The command parser will print an error if it is fed an invalid command.
 def is_command(line):
-    stripped_line = line.strip()
     if line.isspace() == True:
         return False
-    elif stripped_line[0] == '/':
+    elif line == '':
+        return False
+    elif line[0] == '/':
+        return False
+    elif line[0] == '(':
         return False
     else:
         return True
 
 # Controller function for parsing a command from assembly to machine    
 def parse_to_hack(command):
-    command = command.strip()
+    command = clean_command(command)
     if (command[0] == '@'):
-        binary_program.append(f'{parse_a_instruction(command)}\n')
+        binary_program.append(f'{parse_symbolic_a(command)}\n')
     else:
         binary_program.append(f'{parse_c_instruction(command)}\n')
+
+# strip whitespace and trailing comments from command inputs
+def clean_command(command):
+    regex = re.compile(r'//.*')
+    clean_command = regex.sub('', command).strip()
+    return clean_command
 
 # parse an a instruction from hack assembly to binary
 def parse_a_instruction(command):
@@ -27,6 +63,20 @@ def parse_a_instruction(command):
     binary_address = bin(address)
     return f'{binary_address[2:].zfill(16)}'
 
+def parse_symbolic_a(command):
+    if command[1:].isnumeric():
+        return parse_a_instruction(command)
+    elif command[1:] in symbol_table:
+        address = symbol_table[command[1:]]
+        binary_address = bin(address)
+        return f'{binary_address[2:].zfill(16)}'
+    else:
+        symbol_table[command[1:]] = symbol_table['var_address']
+        symbol_table['var_address'] += 1
+        address = symbol_table[command[1:]]
+        binary_address = bin(address)
+        return f'{binary_address[2:].zfill(16)}'
+         
 # split a c instruction into comp, dest, and jump components
 def split_c_instruction(command):
     dest_command = ''
@@ -153,15 +203,32 @@ def parse_comp(cmp):
     elif cmp == 'D|M':
         return '1010101'
 
+def handle_label(label, rom_address):
+    symbol_table[label[1:-1]] = rom_address
+    
+# first pass to get labels
+with open(sys.argv[1], 'r') as f:
+    rom_address = 0
+    for line in f:
+        line = line.strip()
+        if is_command(line) == True:
+            rom_address += 1
+        elif line != '' and line[0] == '(':   
+            handle_label(line, rom_address)
+
+f.close()   
+
 with open(sys.argv[1], 'r') as f:
     for line in f:
+        line = line.strip()
         if is_command(line) == True:
             parse_to_hack(line)
-f.close
+
 
 writeF = open(f'{sys.argv[1][:-4]}.hack', 'w', encoding='utf-8')
 
 for command in binary_program:
     writeF.write(command)
 
-writeF.close
+writeF.close()
+print(symbol_table)
